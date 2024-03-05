@@ -1,12 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChakraProvider, Grid, GridItem, Box, Text, FormControl, FormLabel, Input, Button, useToast } from "@chakra-ui/react";
 import { FaPlus } from "react-icons/fa";
 
-const EventItem = ({ title, days, isPast }) => {
+const EventItem = ({ title, days, isPast, onRemove }) => {
   return (
     <Box p={4} color="white" bg={isPast ? "yellow.500" : "green.500"} borderRadius="md" textAlign="center">
       <Text fontSize="sm" fontWeight="bold">
-        {title}
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box>{title}</Box>
+          <Button size="xs" colorScheme="red" onClick={onRemove}>
+            Remove
+          </Button>
+        </Box>
       </Text>
       <Text fontSize="5xl" fontWeight="extrabold">
         {Math.abs(days)}
@@ -18,6 +23,22 @@ const EventItem = ({ title, days, isPast }) => {
 
 const Index = () => {
   const [events, setEvents] = useState([]);
+
+  useEffect(() => {
+    const savedEvents = localStorage.getItem("events");
+    if (savedEvents) {
+      setEvents(JSON.parse(savedEvents));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("events", JSON.stringify(events));
+  }, [events]);
+
+  const handleRemoveEvent = (index) => {
+    const newEvents = events.filter((_, i) => i !== index);
+    setEvents(newEvents);
+  };
   const [newEventTitle, setNewEventTitle] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const toast = useToast();
@@ -65,7 +86,7 @@ const Index = () => {
         <Grid templateColumns="repeat(3, 1fr)" gap={6}>
           {events.map((event, index) => (
             <GridItem key={index}>
-              <EventItem title={event.title} days={event.days} isPast={event.isPast} />
+              <EventItem title={event.title} days={event.days} isPast={event.isPast} onRemove={() => handleRemoveEvent(index)} />
             </GridItem>
           ))}
         </Grid>
